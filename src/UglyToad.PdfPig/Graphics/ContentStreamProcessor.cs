@@ -23,6 +23,7 @@
         private readonly bool isLenientParsing;
         private readonly IPdfTokenScanner pdfScanner;
         private readonly XObjectFactory xObjectFactory;
+        private readonly TextOptions textOptions;
         private readonly ILog log;
 
         private Stack<CurrentGraphicsState> graphicsStack = new Stack<CurrentGraphicsState>();
@@ -43,9 +44,12 @@
 
         public List<Letter> Letters = new List<Letter>();
 
+        private readonly List<int> newlineIndices = new List<int>();
+
         public ContentStreamProcessor(PdfRectangle cropBox, IResourceStore resourceStore, UserSpaceUnit userSpaceUnit, bool isLenientParsing, 
             IPdfTokenScanner pdfScanner,
             XObjectFactory xObjectFactory,
+            TextOptions textOptions,
             ILog log)
         {
             this.resourceStore = resourceStore;
@@ -53,6 +57,7 @@
             this.isLenientParsing = isLenientParsing;
             this.pdfScanner = pdfScanner;
             this.xObjectFactory = xObjectFactory;
+            this.textOptions = textOptions;
             this.log = log;
             graphicsStack.Push(new CurrentGraphicsState());
         }
@@ -63,7 +68,7 @@
 
             ProcessOperations(operations);
             
-            return new PageContent(operations, Letters, xObjects, pdfScanner, xObjectFactory, isLenientParsing);
+            return new PageContent(operations, Letters, newlineIndices, xObjects, pdfScanner, xObjectFactory, textOptions, isLenientParsing);
         }
 
         private void ProcessOperations(IReadOnlyList<IGraphicsStateOperation> operations)
@@ -286,6 +291,40 @@
         private void ShowGlyph(IFont font, PdfRectangle glyphRectangle, PdfPoint startBaseLine, PdfPoint endBaseLine, decimal width, string unicode, decimal fontSize, decimal pointSize)
         {
             var letter = new Letter(unicode, glyphRectangle, startBaseLine, endBaseLine, width, fontSize, font.Name.Data, pointSize);
+
+            if (Letters.Count > 0 && textOptions?.IncludeNewlines == true)
+            {
+                var last = Letters[Letters.Count - 1];
+
+                var directionChanged = last.TextDirection != letter.TextDirection;
+
+                if (directionChanged)
+                {
+                    newlineIndices.Add(Letters.Count);
+                }
+                else if (last.TextDirection == TextDirection.Horizontal)
+                {
+                    var distance = Math.Abs(last.StartBaseLine.Y - letter.StartBaseLine.Y);
+
+                    var biggest = Math.Max(last.GlyphRectangle.Height, letter.GlyphRectangle.Height);
+
+                    if (biggest > 0 && distance > biggest / 2)
+                    {
+                        newlineIndices.Add(Letters.Count);
+                    }
+                }
+                else if (last.TextDirection == TextDirection.Rotate90)
+                {
+                    var distance = Math.Abs(last.EndBaseLine.Y - letter.StartBaseLine.Y);
+
+                    var biggest = Math.Abs(Math.Max(last.GlyphRectangle.Width, letter.GlyphRectangle.Width));
+
+                    if (biggest > 0 && distance > biggest)
+                    {
+                        newlineIndices.Add(Letters.Count);
+                    }
+                }
+            }
 
             Letters.Add(letter);
         }

@@ -26,5 +26,10 @@
         /// The password to use to open the document if it is encrypted.
         /// </summary>
         public string Password { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The options used when extracting document text.
+        /// </summary>
+        public TextOptions Text { get; set; } = new TextOptions();
     }
 }

@@ -18,7 +18,7 @@
         PdfPath CurrentPath { get; }
 
         /// <summary>
-        /// The current p
+        /// The current position.
         /// </summary>
         PdfPoint CurrentPosition { get; set; }
 

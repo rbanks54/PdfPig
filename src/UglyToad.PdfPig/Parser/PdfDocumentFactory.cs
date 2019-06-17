@@ -57,22 +57,22 @@
         private static PdfDocument Open(IInputBytes inputBytes, ParsingOptions options = null)
         {
             var container = Bootstrapper.GenerateContainer(options?.Logger);
-
-            var isLenientParsing = options?.UseLenientParsing ?? true;
             
             var tokenScanner = new CoreTokenScanner(inputBytes);
 
-            var document = OpenDocument(inputBytes, tokenScanner, container, isLenientParsing, options?.Password);
+            var document = OpenDocument(inputBytes, tokenScanner, container, options);
 
             return document;
         }
 
-        private static PdfDocument OpenDocument(IInputBytes inputBytes, ISeekableTokenScanner scanner, IContainer container, bool isLenientParsing, string password)
+        private static PdfDocument OpenDocument(IInputBytes inputBytes, ISeekableTokenScanner scanner, IContainer container, ParsingOptions options)
         {
             var log = container.Get<ILog>();
             var filterProvider = container.Get<IFilterProvider>();
             var catalogFactory = new CatalogFactory();
             var cMapCache = new CMapCache(new CMapParser());
+
+            var isLenientParsing = options?.UseLenientParsing ?? true;
 
             CrossReferenceTable crossReferenceTable = null;
 
@@ -107,7 +107,7 @@
             
             var rootDictionary = ParseTrailer(crossReferenceTable, isLenientParsing, pdfScanner, out var encryptionDictionary);
 
-            var encryptionHandler = encryptionDictionary != null ? (IEncryptionHandler)new EncryptionHandler(encryptionDictionary, crossReferenceTable.Trailer, password ?? string.Empty)
+            var encryptionHandler = encryptionDictionary != null ? (IEncryptionHandler)new EncryptionHandler(encryptionDictionary, crossReferenceTable.Trailer, options?.Password ?? string.Empty)
                 : NoOpEncryptionHandler.Instance;
 
             pdfScanner.UpdateEncryptionHandler(encryptionHandler);
@@ -127,7 +127,7 @@
             
             var pageFactory = new PageFactory(pdfScanner, resourceContainer, filterProvider, 
                 new PageContentParser(new ReflectionGraphicsStateOperationFactory()), 
-                new XObjectFactory(), log);
+                new XObjectFactory(), options?.Text ?? new TextOptions(), log);
             var informationFactory = new DocumentInformationFactory();
 
             var information = informationFactory.Create(pdfScanner, crossReferenceTable.Trailer);

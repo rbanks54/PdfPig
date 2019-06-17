@@ -23,17 +23,20 @@
         private readonly IFilterProvider filterProvider;
         private readonly IPageContentParser pageContentParser;
         private readonly XObjectFactory xObjectFactory;
+        private readonly TextOptions textOptions;
         private readonly ILog log;
 
         public PageFactory(IPdfTokenScanner pdfScanner, IResourceStore resourceStore, IFilterProvider filterProvider,
             IPageContentParser pageContentParser,
             XObjectFactory xObjectFactory,
+            TextOptions textOptions,
             ILog log)
         {
             this.resourceStore = resourceStore;
             this.filterProvider = filterProvider;
             this.pageContentParser = pageContentParser;
             this.xObjectFactory = xObjectFactory;
+            this.textOptions = textOptions;
             this.log = log;
             this.pdfScanner = pdfScanner;
         }
@@ -119,7 +122,7 @@
         {
             var operations = pageContentParser.Parse(new ByteArrayInputBytes(contentBytes));
 
-            var context = new ContentStreamProcessor(cropBox.Bounds, resourceStore, userSpaceUnit, isLenientParsing, pdfScanner, xObjectFactory, log);
+            var context = new ContentStreamProcessor(cropBox.Bounds, resourceStore, userSpaceUnit, isLenientParsing, pdfScanner, xObjectFactory, textOptions, log);
 
             return context.Process(operations);
         }

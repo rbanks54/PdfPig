@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using Annotations;
     using Graphics.Operations;
     using Tokens;
@@ -81,23 +80,13 @@
             MediaBox = mediaBox;
             CropBox = cropBox;
             Content = content;
-            Text = GetText(content);
+            Text = content?.GetText() ?? string.Empty;
 
             Width = mediaBox.Bounds.Width;
             Height = mediaBox.Bounds.Height;
 
             Size = mediaBox.Bounds.GetPageSize();
             ExperimentalAccess = new Experimental(this, annotationProvider);
-        }
-
-        private static string GetText(PageContent content)
-        {
-            if (content?.Letters == null)
-            {
-                return string.Empty;
-            }
-
-            return string.Join(string.Empty, content.Letters.Select(x => x.Value));
         }
 
         /// <summary>
