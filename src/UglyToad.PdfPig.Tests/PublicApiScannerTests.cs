@@ -152,6 +152,7 @@
                 "UglyToad.PdfPig.ParsingOptions",
                 "UglyToad.PdfPig.PdfDocument",
                 "UglyToad.PdfPig.Structure",
+                "UglyToad.PdfPig.TextOptions",
                 "UglyToad.PdfPig.Tokens.ArrayToken",
                 "UglyToad.PdfPig.Tokens.BooleanToken",
                 "UglyToad.PdfPig.Tokens.CommentToken",

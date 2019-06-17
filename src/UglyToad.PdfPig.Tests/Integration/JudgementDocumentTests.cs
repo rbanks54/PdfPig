@@ -26,7 +26,13 @@
         [Fact]
         public void HasCorrectPageContents()
         {
-            using (var document = PdfDocument.Open(GetFilename()))
+            using (var document = PdfDocument.Open(GetFilename(), new ParsingOptions
+            {
+                Text = new TextOptions
+                {
+                    IncludeNewlines = false
+                }
+            }))
             {
                 var page = document.GetPage(1);
 

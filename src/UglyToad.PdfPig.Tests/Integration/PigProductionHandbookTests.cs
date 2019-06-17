@@ -92,7 +92,7 @@
             {
                 var page = document.GetPage(9);
 
-                Assert.Contains("BreedsNative breeds of pig can be found throughout the country. They are a small body size compared to other exotic and crosses pig types. There name varies from region to region, for example", page.Text);
+                Assert.Contains(@"Native breeds of pig can be found throughout the country.", page.Text);
             }
         }
 

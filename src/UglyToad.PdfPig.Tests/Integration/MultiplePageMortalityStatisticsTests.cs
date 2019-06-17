@@ -37,7 +37,13 @@
         [Fact]
         public void GetsFirstPageContent()
         {
-            using (var document = PdfDocument.Open(GetFilename()))
+            using (var document = PdfDocument.Open(GetFilename(), new ParsingOptions
+            {
+                Text = new TextOptions
+                {
+                    IncludeNewlines = false
+                }
+            }))
             {
                 var page = document.GetPage(1);
 
@@ -52,7 +58,13 @@
         [Fact]
         public void GetsPagesContent()
         {
-            using (var document = PdfDocument.Open(GetFilename()))
+            using (var document = PdfDocument.Open(GetFilename(), new ParsingOptions
+            {
+                Text = new TextOptions
+                {
+                    IncludeNewlines = false
+                }
+            }))
             {
                 var pages = new[]
                 {
