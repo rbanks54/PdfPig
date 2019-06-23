@@ -1,6 +1,7 @@
 ﻿namespace UglyToad.PdfPig.Encryption
 {
     using System;
+    using System.Linq;
     using Tokenization.Scanner;
     using Tokens;
     using Util;
@@ -36,9 +37,32 @@
                 revision = revisionToken.Int;
             }
 
-            encryptionDictionary.TryGetOptionalStringDirect(NameToken.O, tokenScanner, out var ownerString);
-            encryptionDictionary.TryGetOptionalStringDirect(NameToken.U, tokenScanner, out var userString);
-
+            byte[] ownerBytes = null;
+            if (encryptionDictionary.TryGet(NameToken.O, out IToken ownerToken))
+            {
+                if (ownerToken is StringToken ownerString)
+                {
+                    ownerBytes = OtherEncodings.StringAsLatin1Bytes(ownerString.Data);
+                }
+                else if (ownerToken is HexToken ownerHex)
+                {
+                    ownerBytes = ownerHex.Bytes.ToArray();
+                }
+            }
+            
+            byte[] userBytes = null;
+            if (encryptionDictionary.TryGet(NameToken.U, out IToken userToken))
+            {
+                if (userToken is StringToken userString)
+                {
+                    userBytes = OtherEncodings.StringAsLatin1Bytes(userString.Data);
+                }
+                else if (userToken is HexToken userHex)
+                {
+                    userBytes = userHex.Bytes.ToArray();
+                }
+            }
+            
             var access = default(UserAccessPermissions);
 
             if (encryptionDictionary.TryGetOptionalTokenDirect(NameToken.P, tokenScanner, out NumericToken accessToken))
@@ -49,21 +73,34 @@
             byte[] userEncryptionBytes = null, ownerEncryptionBytes = null;
             if (revision >= 5)
             {
-                var oe = encryptionDictionary.Get<StringToken>(NameToken.Oe, tokenScanner);
-                var ue = encryptionDictionary.Get<StringToken>(NameToken.Ue, tokenScanner);
-
-                ownerEncryptionBytes = OtherEncodings.StringAsLatin1Bytes(oe.Data);
-                userEncryptionBytes = OtherEncodings.StringAsLatin1Bytes(ue.Data);
+                ownerEncryptionBytes = GetEncryptionBytesOrDefault(encryptionDictionary, tokenScanner, false);
+                userEncryptionBytes = GetEncryptionBytesOrDefault(encryptionDictionary, tokenScanner, true);
             }
 
             encryptionDictionary.TryGetOptionalTokenDirect(NameToken.EncryptMetaData, tokenScanner, out BooleanToken encryptMetadata);
 
-            return new EncryptionDictionary(filter.Data, code, length, revision, ownerString, userString, 
+            return new EncryptionDictionary(filter.Data, code, length, revision, ownerBytes, userBytes, 
                 ownerEncryptionBytes,
                 userEncryptionBytes,
                 access, 
                 encryptionDictionary,
                 encryptMetadata?.Data ?? true);
+        }
+
+        private static byte[] GetEncryptionBytesOrDefault(DictionaryToken encryptionDictionary, IPdfTokenScanner tokenScanner, bool isUser)
+        {
+            var name = isUser ? NameToken.Ue : NameToken.Oe;
+            if (encryptionDictionary.TryGet(name, tokenScanner, out StringToken stringToken))
+            {
+                return OtherEncodings.StringAsLatin1Bytes(stringToken.Data);
+            }
+
+            if (encryptionDictionary.TryGet(name, tokenScanner, out HexToken hexToken))
+            {
+                return hexToken.Bytes.ToArray();
+            }
+
+            return null;
         }
     }
 }
