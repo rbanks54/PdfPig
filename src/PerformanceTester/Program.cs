@@ -15,8 +15,8 @@ namespace PerformanceTester
             var tests = new Dictionary<string, string[]>
             {
                 { "just the iliad", new string[]{iliadPath} },
-                { "just war and peace", new string[]{warAndPeacePath} },
-                { "both", new string[]{iliadPath, warAndPeacePath} },
+                //{ "just war and peace", new string[]{warAndPeacePath} },
+                //{ "both", new string[]{iliadPath, warAndPeacePath} },
             };
 
             foreach (var test in tests)
