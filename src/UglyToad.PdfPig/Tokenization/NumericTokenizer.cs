@@ -1,6 +1,7 @@
 ﻿namespace UglyToad.PdfPig.Tokenization
 {
     using System;
+    using System.Buffers.Text;
     using System.Globalization;
     using System.Text;
     using IO;
@@ -14,49 +15,47 @@
         {
             token = null;
 
-            StringBuilder characters;
+            var c = (char)currentByte;
 
-            if ((currentByte >= '0' && currentByte <= '9') || currentByte == '-' || currentByte == '+' || currentByte == '.')
-            {
-                characters = new StringBuilder();
-                characters.Append((char)currentByte);
-            }
-            else
+            if (!char.IsDigit(c) && c != '-' && c != '+' && c != '.')
             {
                 return false;
             }
 
+            var startIndex = inputBytes.CurrentOffset;
+            var endIndex = startIndex;
+
             while (inputBytes.MoveNext())
             {
-                var b = inputBytes.CurrentByte;
-                var c = (char) b;
+                c = (char)inputBytes.CurrentByte;
 
-                if (char.IsDigit(c) ||
-                    c == '-' ||
-                    c == '+' ||
-                    c == '.' ||
-                    c == 'E' ||
-                    c == 'e')
-                {
-                    characters.Append(c);
-                }
-                else
+                if (!char.IsDigit(c) &&
+                    c != '-' &&
+                    c != '+' &&
+                    c != '.' &&
+                    c != 'E' &&
+                    c != 'e')
                 {
                     break;
                 }
+                endIndex = inputBytes.CurrentOffset;
             }
 
             decimal value;
 
+            var tokenSpan = inputBytes.GetSpan((int)startIndex, (int)(endIndex - startIndex) + 1);
             try
             {
-                if (characters.Length == 1 && (characters[0] == '-' || characters[0] == '.'))
+                if (tokenSpan.Length == 1 && (tokenSpan[0] == '-' || tokenSpan[0] == '.'))
                 {
                     value = 0;
                 }
                 else
                 {
-                    value = decimal.Parse(characters.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture);
+                    var parsed = Utf8Parser.TryParse(tokenSpan, out value, out int bytesUsed);
+                    if (!parsed || bytesUsed != tokenSpan.Length) {
+                        throw new FormatException("Parsing the token went kaput");
+                    }
                 }
             }
             catch (FormatException)

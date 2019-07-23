@@ -26,6 +26,7 @@
         /// <summary>
         /// The length of the data in bytes.
         /// </summary>
+        ReadOnlySpan<byte> GetSpan(in int startOffset, in int length);
         long Length { get; }
 
         /// <summary>
