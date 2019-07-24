@@ -5,8 +5,8 @@ namespace Benchmarks {
     using BenchmarkDotNet.Attributes;
     using UglyToad.PdfPig.IO;
     using UglyToad.PdfPig.Tokenization;
-    public class NumericTokens {
-        private readonly NumericTokenizer tokenizer = new NumericTokenizer();
+    public class NameTokens {
+        private readonly NameTokenizer tokenizer = new NameTokenizer();
         public class ConvertedStrings 
         { 
             public ConvertedStrings(string[] initialValues) => 
@@ -17,19 +17,19 @@ namespace Benchmarks {
             public StringConverter.Result[] Values { get; } 
         } 
 
-        public string[] NumericStrings => new[] 
+        public string[] NameStrings => new[] 
         { 
-            "57473.3458382"//, "1.57e3" 
+            "/A−Name_With;Various***Characters?",
         }; 
 
-        public IEnumerable<StringConverter.Result> TestNumericStrings() 
+        public IEnumerable<StringConverter.Result> TestNameStrings() 
         { 
-            return new ConvertedStrings(NumericStrings).Values.AsEnumerable(); 
+            return new ConvertedStrings(NameStrings).Values.AsEnumerable(); 
         } 
 
         [Benchmark] 
-        [ArgumentsSource(nameof(TestNumericStrings))] 
-        public void ValidNumbers(StringConverter.Result input) 
+        [ArgumentsSource(nameof(TestNameStrings))] 
+        public void ValidNames(StringConverter.Result input) 
         { 
             tokenizer.TryTokenize(input.First, input.Bytes, out var token); 
         }
