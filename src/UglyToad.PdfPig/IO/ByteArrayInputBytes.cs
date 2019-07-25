@@ -1,16 +1,18 @@
 ﻿namespace UglyToad.PdfPig.IO
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
 
     internal class ByteArrayInputBytes : IInputBytes
     {
-        private readonly IReadOnlyList<byte> bytes;
+        private readonly ReadOnlyMemory<byte> bytes;
 
         [DebuggerStepThrough]
         public ByteArrayInputBytes(IReadOnlyList<byte> bytes)
         {
-            this.bytes = bytes;
+            this.bytes = bytes.ToArray().AsMemory();
             currentOffset = -1;
         }
         
@@ -19,43 +21,49 @@
 
         public bool MoveNext()
         {
-            if (currentOffset == bytes.Count - 1)
+            if (currentOffset == bytes.Length - 1)
             {
                 return false;
             }
 
             currentOffset++;
-            CurrentByte = bytes[(int)currentOffset];
             return true;
         }
 
-        public byte CurrentByte { get; private set; }
+        public byte CurrentByte { get {
+            if (currentOffset < 0) return 0;
+            return bytes.Span[(int)currentOffset];
+        } }
 
-        public long Length => bytes.Count;
+        public long Length => bytes.Length;
 
         public byte? Peek()
         {
-            if (currentOffset == bytes.Count - 1)
+            if (currentOffset == bytes.Length - 1)
             {
                 return null;
             }
 
-            return bytes[(int)currentOffset + 1];
+            return bytes.Span[(int)currentOffset + 1];
         }
 
         public bool IsAtEnd()
         {
-            return currentOffset == bytes.Count - 1;
+            return currentOffset == bytes.Length - 1;
         }
 
         public void Seek(long position)
         {
+            if (position > bytes.Length) position = bytes.Length;
             currentOffset = (int)position - 1;
-            CurrentByte = currentOffset < 0 ? (byte)0 : bytes[(int)currentOffset];
         }
 
         public void Dispose()
         {
+        }
+
+        public ReadOnlySpan<byte> GetSpan(in int startOffset, in int length) {
+            return bytes.Span.Slice(startOffset - 1, length); 
         }
     }
 }

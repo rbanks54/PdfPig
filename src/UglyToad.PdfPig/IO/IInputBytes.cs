@@ -42,5 +42,6 @@
         /// Move to a given position.
         /// </summary>
         void Seek(long position);
+        ReadOnlySpan<byte> GetSpan(in int startOffset, in int Length);
     }
 }

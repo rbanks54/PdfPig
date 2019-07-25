@@ -1,6 +1,7 @@
 ﻿namespace UglyToad.PdfPig.Parser.Parts
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Text;
@@ -41,7 +42,7 @@
                 buffer.Append((char)c);
             }
 
-            // CR+LF is also a valid EOL 
+            // CR+LF is also a valid EOL
             if (IsCarriageReturn(c) && IsLineFeed(bytes.Peek()))
             {
                 bytes.MoveNext();
@@ -49,7 +50,7 @@
 
             return buffer.ToString();
         }
-        
+
         public static void SkipSpaces(IInputBytes bytes)
         {
             const int commentCharacter = 37;
@@ -103,7 +104,7 @@
         {
             return EndOfNameCharacters.Contains(ch);
         }
-        
+
         /// <summary>
         /// Determines if a character is whitespace or not.
         /// </summary>
@@ -153,7 +154,7 @@
 
             return found;
         }
-        
+
         public static long ReadLong(IInputBytes bytes)
         {
             SkipSpaces(bytes);
@@ -206,7 +207,7 @@
 
             return buffer;
         }
-        
+
         /// <summary>
         /// This will tell if the given value is a digit or not.
         /// </summary>
@@ -240,10 +241,10 @@
 
             return result;
         }
-        
+
         /**
          * This will tell if the given value is a space or not.
-         * 
+         *
          * @param c The character to check against space
          * @return true if the next byte in the stream is a space character.
          */
@@ -267,6 +268,20 @@
                 var charLength = d.GetCharCount(input, 0, input.Length);
                 var chars = new char[charLength];
                 d.Convert(input, 0, input.Length, chars, 0, charLength, true, out _, out _, out _);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        public static bool IsValidUtf8Span(ReadOnlySpan<byte> input)
+        {
+            try
+            {
+                var buffer = new char[input.Length].AsSpan();
+                var d = Encoding.UTF8.GetDecoder();
+                d.GetChars(input,buffer,false);
                 return true;
             }
             catch (Exception)

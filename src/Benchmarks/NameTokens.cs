@@ -33,5 +33,12 @@ namespace Benchmarks {
         { 
             tokenizer.TryTokenize(input.First, input.Bytes, out var token); 
         }
+
+        [Benchmark(Baseline = true)]
+        [ArgumentsSource(nameof(TestNameStrings))] 
+        public void Old_ValidNames(StringConverter.Result input) 
+        { 
+            tokenizer.TryTokenize(input.First, input.Bytes, out var token); 
+        }
     }
 }

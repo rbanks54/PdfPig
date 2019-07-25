@@ -3,7 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <PackageId>PdfPig</PackageId>
-    <DebugType>full</DebugType>
+    <!-- <DebugType>full</DebugType> -->
+    <DebugType>Portable</DebugType>
     <Authors>UglyToad</Authors>
     <Title>PdfPig</Title>
     <Description>Reads text content from PDF documents and supports document creation.</Description>

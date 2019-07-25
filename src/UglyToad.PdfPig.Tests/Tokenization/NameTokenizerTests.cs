@@ -96,6 +96,7 @@
         }
 
         [Theory]
+        [InlineData("/#20H", " H")]
         [InlineData("/Adobe#20Green", "Adobe Green")]
         [InlineData("/PANTONE#205757#20CV", "PANTONE 5757 CV")]
         [InlineData("/paired#28#29parentheses", "paired()parentheses")]

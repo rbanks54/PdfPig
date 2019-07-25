@@ -94,5 +94,10 @@
                 stream?.Dispose();
             }
         }
+
+        public ReadOnlySpan<byte> GetSpan(in int startOffset, in int Length)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -1,7 +1,10 @@
 ﻿namespace UglyToad.PdfPig.Tokenization
 {
     using System;
+    using System.Buffers;
+    using System.Buffers.Text;
     using System.Collections.Generic;
+    using System.Runtime.InteropServices;
     using System.Text;
     using IO;
     using Parser.Parts;
@@ -12,6 +15,89 @@
         public bool ReadsNextByte { get; } = true;
 
         public bool TryTokenize(byte currentByte, IInputBytes inputBytes, out IToken token)
+        {
+            token = null;
+
+            if (currentByte != '/')
+            {
+                return false;
+            }
+
+            var pool = ArrayPool<byte>.Shared;
+            var byteArray = pool.Rent(200);
+            var bytes = byteArray.AsSpan();
+            var writtenBytes = 0;
+
+            bool escapeActive = false;
+            var chunkStartIndex = inputBytes.CurrentOffset + 1;
+            ReadOnlySpan<byte> chunk;
+
+            try
+            {
+                while (inputBytes.MoveNext())
+                {
+                    var b = inputBytes.CurrentByte;
+
+                    if (b == '#')
+                    {
+                        escapeActive = true;
+                        continue;
+                    }
+                    else if (escapeActive)
+                    {
+                        if (ReadHelper.IsHex((char)b))
+                        {
+                            // Looking for hex encoded as "#FF" format
+                            var nextByte = inputBytes.Peek();
+                            if (ReadHelper.IsHex((char)nextByte)) {
+                                inputBytes.MoveNext(); 
+                                //The chunk of the token before the hex marker ends 3 chars earlier
+                                chunk = inputBytes.GetSpan((int)chunkStartIndex,(int)(inputBytes.CurrentOffset - 2 - chunkStartIndex));
+                                chunk.CopyTo(bytes);
+                                writtenBytes += chunk.Length;
+                                chunkStartIndex = (int)inputBytes.CurrentOffset + 1;
+                                bytes = bytes.Slice(chunk.Length);
+
+                                var hexSpan = inputBytes.GetSpan((int)inputBytes.CurrentOffset - 1,2); //ignore leading hash marker
+                                var hexString = Encoding.ASCII.GetString(hexSpan); //yucky - but I can't find a span API that eliminates the need to convert to a string for the int conversion
+                                bytes[0] = (byte)Convert.ToInt32(hexString, 16);
+                                bytes = bytes.Slice(1);
+                                writtenBytes++;
+                            }
+                        }
+                        escapeActive = false;
+                    }
+                    if (ReadHelper.IsEndOfName(b))
+                    {
+                        inputBytes.Seek(inputBytes.CurrentOffset - 1); //found an end of name token - we don't want to process it
+                        break;
+                    }
+                }
+                //Write the final chunk
+                chunk = inputBytes.GetSpan((int)chunkStartIndex,(int)(inputBytes.CurrentOffset - chunkStartIndex + 1));
+                chunk.CopyTo(bytes);
+                writtenBytes += chunk.Length;
+                chunkStartIndex = (int)inputBytes.CurrentOffset;
+                bytes = bytes.Slice(chunk.Length);
+
+                var tokenSpan = byteArray.AsSpan().Slice(0,writtenBytes);
+                // var tokenArray = tokenSpan.ToArray(); //need to convert the helper methods later
+                
+                var str = ReadHelper.IsValidUtf8Span(byteArray.AsSpan().Slice(0,writtenBytes))
+                    ? Encoding.UTF8.GetString(tokenSpan)
+                    : Encoding.GetEncoding("windows-1252").GetString(tokenSpan);
+
+                token = NameToken.Create(str);
+            }
+            finally
+            {
+                pool.Return(byteArray);
+            }
+
+            return true;
+        }
+
+        public bool TryTokenize_Old(byte currentByte, IInputBytes inputBytes, out IToken token)
         {
             token = null;
 
