@@ -31,7 +31,7 @@
         /// </summary>
         /// <param name="name">The string representation of the name for the token to create.</param>
         /// <returns>The created or existing token.</returns>
-        public static NameToken Create([NotNull] string name)
+        public static NameToken Create([NotNull] in string name)
         {
             if (name == null)
             {

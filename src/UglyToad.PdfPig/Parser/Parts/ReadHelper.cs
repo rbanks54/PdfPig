@@ -275,7 +275,7 @@
                 return false;
             }
         }
-        public static bool IsValidUtf8Span(ReadOnlySpan<byte> input)
+        public static bool IsValidUtf8Span(in ReadOnlySpan<byte> input)
         {
             try
             {

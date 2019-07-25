@@ -27,6 +27,13 @@ namespace Benchmarks {
             return new ConvertedStrings(NameStrings).Values.AsEnumerable(); 
         } 
 
+        // [Benchmark] 
+        // [ArgumentsSource(nameof(TestNameStrings))] 
+        // public void ValidNamesV2(StringConverter.Result input) 
+        // { 
+        //     tokenizer.TryTokenize_v2(input.First, input.Bytes, out var token); 
+        // }
+
         [Benchmark] 
         [ArgumentsSource(nameof(TestNameStrings))] 
         public void ValidNames(StringConverter.Result input) 
@@ -38,7 +45,7 @@ namespace Benchmarks {
         [ArgumentsSource(nameof(TestNameStrings))] 
         public void Old_ValidNames(StringConverter.Result input) 
         { 
-            tokenizer.TryTokenize(input.First, input.Bytes, out var token); 
+            tokenizer.TryTokenize_Old(input.First, input.Bytes, out var token); 
         }
     }
 }
