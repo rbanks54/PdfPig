@@ -105,6 +105,23 @@
             return EndOfNameCharacters.Contains(ch);
         }
 
+        public static bool IsEndOfName_NoHashSet(int ch)
+        {
+            return ch == ' ' 
+                || ch == AsciiCarriageReturn
+                || ch == AsciiLineFeed
+                || ch == 9
+                || ch == '>'
+                || ch == '<'
+                || ch == '['
+                || ch == '/'
+                || ch == ']'
+                || ch == ')'
+                || ch == '('
+                || ch == 0
+                || ch == '\f';
+        }
+
         /// <summary>
         /// Determines if a character is whitespace or not.
         /// </summary>
@@ -275,6 +292,39 @@
                 return false;
             }
         }
+
+        //Avoid reallocating in every call
+        static Decoder utf8Decoder = Encoding.UTF8.GetDecoder();
+
+        public static bool IsValidUtf8Span_sharedDecoder(in ReadOnlySpan<byte> input)
+        {
+            try
+            {
+                var buffer = new char[input.Length].AsSpan();
+                utf8Decoder.GetChars(input,buffer,false);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public static bool IsValidUtf8Span_sharedDecoder_withOutVal(in ReadOnlySpan<byte> input, out Span<char> result)
+        {
+            try
+            {
+                result = new char[input.Length].AsSpan();
+                utf8Decoder.GetChars(input,result,false);
+                return true;
+            }
+            catch (Exception)
+            {
+                result = null;
+                return false;
+            }
+        }
+
         public static bool IsValidUtf8Span(in ReadOnlySpan<byte> input)
         {
             try

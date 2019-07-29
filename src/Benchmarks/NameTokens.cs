@@ -27,12 +27,27 @@ namespace Benchmarks {
             return new ConvertedStrings(NameStrings).Values.AsEnumerable(); 
         } 
 
+        //30% slower. Yikes!!
         // [Benchmark] 
         // [ArgumentsSource(nameof(TestNameStrings))] 
         // public void ValidNamesV2(StringConverter.Result input) 
         // { 
         //     tokenizer.TryTokenize_v2(input.First, input.Bytes, out var token); 
         // }
+
+        [Benchmark] 
+        [ArgumentsSource(nameof(TestNameStrings))] 
+        public void ValidNames_v3(StringConverter.Result input) 
+        { 
+            tokenizer.TryTokenize_v3(input.First, input.Bytes, out var token); 
+        }
+
+        [Benchmark] 
+        [ArgumentsSource(nameof(TestNameStrings))] 
+        public void ValidNames_v4(StringConverter.Result input) 
+        { 
+            tokenizer.TryTokenize_v4(input.First, input.Bytes, out var token); 
+        }
 
         [Benchmark] 
         [ArgumentsSource(nameof(TestNameStrings))] 
@@ -45,7 +60,7 @@ namespace Benchmarks {
         [ArgumentsSource(nameof(TestNameStrings))] 
         public void Old_ValidNames(StringConverter.Result input) 
         { 
-            tokenizer.TryTokenize_Old(input.First, input.Bytes, out var token); 
+            tokenizer.TryTokenize_Original(input.First, input.Bytes, out var token); 
         }
     }
 }
