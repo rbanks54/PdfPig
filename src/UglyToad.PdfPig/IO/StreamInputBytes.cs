@@ -95,7 +95,7 @@
             }
         }
 
-        public ReadOnlySpan<byte> GetSpan(in int startOffset, in int Length)
+        public ReadOnlySpan<byte> GetSpan(int startOffset, int Length)
         {
             throw new NotImplementedException();
         }

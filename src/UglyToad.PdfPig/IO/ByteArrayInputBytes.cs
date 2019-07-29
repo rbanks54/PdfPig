@@ -10,7 +10,7 @@
         private readonly ReadOnlyMemory<byte> bytes;
 
         [DebuggerStepThrough]
-        public ByteArrayInputBytes(IReadOnlyList<byte> bytes)
+        public ByteArrayInputBytes(in IReadOnlyList<byte> bytes)
         {
             this.bytes = bytes.ToArray().AsMemory();
             currentOffset = -1;
@@ -62,7 +62,7 @@
         {
         }
 
-        public ReadOnlySpan<byte> GetSpan(in int startOffset, in int length) {
+        public ReadOnlySpan<byte> GetSpan(int startOffset, int length) {
             return bytes.Span.Slice(startOffset - 1, length); 
         }
     }
