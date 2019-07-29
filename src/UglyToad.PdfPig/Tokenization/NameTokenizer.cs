@@ -384,18 +384,17 @@
                 return false;
             }
 
-            //We'll try preallocating an array and filling it
-            //This way we can avoid the List expansion operations 
-            //and the ToArray call at the end
+            //We'll create an array on the stack (stackalloc!) and fill it
+            //to avoid the List expansion operations 
+            //and the ToArray call at the end.
 
-            //It involves two passes of the inputByte array though
-            //Once to work out length, and once to fill
-            //This could be slower
+            //It means two passes of the inputByte array though.
+            //Once to work out length, and once to fill it.
 
-            var startPosition = inputBytes.CurrentOffset;
+            var startPosition = (int)inputBytes.CurrentOffset;
             bool escapeActive = false;
             int postEscapeRead = 0;
-            var escapedChars = new char[2];
+            Span<char> escapedChars = stackalloc char[2]; //instead of new char[2]
 
             while (inputBytes.MoveNext())
             {
@@ -444,11 +443,13 @@
                 }
             }
 
-            var endPosition = inputBytes.CurrentOffset;
+            var endPosition = (int)inputBytes.CurrentOffset;
 
             inputBytes.Seek(startPosition);
 
-            var bytes = new byte[endPosition - startPosition + 1];
+            Span<byte> bytes = (endPosition - startPosition) < 100 ?
+                             stackalloc byte[endPosition - startPosition + 1]
+                             : new byte[endPosition - startPosition + 1];
 
             escapeActive = false;
             postEscapeRead = 0;
@@ -519,8 +520,7 @@
                 }
             }
 
-            // byte[] byteArray = bytes.ToArray();
-            var tokenSpan = bytes.AsSpan().Slice(0,index);
+            var tokenSpan = bytes.Slice(0,index);
 
             var str = ReadHelper.IsValidUtf8Span_sharedDecoder(tokenSpan)
                 ? Encoding.UTF8.GetString(tokenSpan)

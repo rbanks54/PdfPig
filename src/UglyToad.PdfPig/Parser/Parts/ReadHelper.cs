@@ -4,7 +4,8 @@
     using System.Buffers;
     using System.Collections.Generic;
     using System.Globalization;
-    using System.Text;
+  using System.Runtime.CompilerServices;
+  using System.Text;
     using Exceptions;
     using IO;
     using Util;
@@ -105,6 +106,7 @@
             return EndOfNameCharacters.Contains(ch);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsEndOfName_NoHashSet(int ch)
         {
             return ch == ' ' 
@@ -128,6 +130,7 @@
         /// <remarks>
         /// These values are specified in table 1 (page 12) of ISO 32000-1:2008.
         /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsWhitespace(int c)
         {
             return c == 0 || c == 9 || c == 12 || c == AsciiLineFeed
@@ -135,16 +138,19 @@
         }
 
         public static bool IsEndOfLine(char c) => IsEndOfLine((byte) c);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsEndOfLine(byte b)
         {
             return IsLineFeed(b) || IsCarriageReturn(b);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsLineFeed(byte? c)
         {
             return AsciiLineFeed == c;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsCarriageReturn(byte c)
         {
             return AsciiCarriageReturn == c;

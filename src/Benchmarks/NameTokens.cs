@@ -35,12 +35,13 @@ namespace Benchmarks {
         //     tokenizer.TryTokenize_v2(input.First, input.Bytes, out var token); 
         // }
 
-        [Benchmark] 
-        [ArgumentsSource(nameof(TestNameStrings))] 
-        public void ValidNames_v3(StringConverter.Result input) 
-        { 
-            tokenizer.TryTokenize_v3(input.First, input.Bytes, out var token); 
-        }
+        //Faster, but v4 is even faster
+        // [Benchmark] 
+        // [ArgumentsSource(nameof(TestNameStrings))] 
+        // public void ValidNames_v3(StringConverter.Result input) 
+        // { 
+        //     tokenizer.TryTokenize_v3(input.First, input.Bytes, out var token); 
+        // }
 
         [Benchmark] 
         [ArgumentsSource(nameof(TestNameStrings))] 
@@ -51,7 +52,7 @@ namespace Benchmarks {
 
         [Benchmark] 
         [ArgumentsSource(nameof(TestNameStrings))] 
-        public void ValidNames(StringConverter.Result input) 
+        public void ValidNames_Latest(StringConverter.Result input) 
         { 
             tokenizer.TryTokenize(input.First, input.Bytes, out var token); 
         }
